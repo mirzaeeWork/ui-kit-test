@@ -3,8 +3,7 @@ import { ButtonUiKit } from "./components";
 function App() {
   return (
     <>
-      <h1>Samane Mirzaee:First package</h1>
-      <h3>Hi good motning👋</h3>
+      <h1>Samane Mirzaee:First package 👋</h1>
       <ButtonUiKit>click me</ButtonUiKit>
     </>
   );
