@@ -6,12 +6,12 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build
+  build-package:
+    name: Build Package
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -20,31 +20,31 @@ jobs:
           node-version: 20
           registry-url: "https://npm.pkg.github.com/"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         uses: bahmutov/npm-install@v1
 
       - name: Build Package
-        run: npm run build:package  # 🔹 تغییر به `build:package`
+        run: npm run build:package
 
-      - name: Upload production-ready build files
+      - name: Upload Package Files
         uses: actions/upload-artifact@v4
         with:
-          name: production-files
+          name: package-files
           path: ./dist
 
-  publish:
-    name: Publish to GitHub Packages
-    needs: build
+  publish-package:
+    name: Publish Package
+    needs: build-package
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
       
-      - name: Download built files
+      - name: Download Package Files
         uses: actions/download-artifact@v4
         with:
-          name: production-files
+          name: package-files
           path: ./dist  
 
       - name: Setup Node.js
@@ -53,31 +53,62 @@ jobs:
           node-version: 20
           registry-url: "https://npm.pkg.github.com/"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Authenticate and Publish Package
+      - name: Authenticate & Publish Package
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
+  build-site:
+    name: Build Website
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Download production-ready build files
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        uses: bahmutov/npm-install@v1
+
+      - name: Build Website
+        run: npm run build:site
+
+      - name: Check Output Files
+        run: ls -la ./dist  # 🔹 بررسی اینکه `dist/` وجود دارد
+
+      - name: Upload Website Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-files
+          path: ./dist  # 🔹 تغییر مسیر از `site` به `dist`
+
+  deploy-site:
+    name: Deploy to GitHub Pages
+    needs: build-site
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Website Files
         uses: actions/download-artifact@v4
         with:
-          name: production-files
-          path: ./dist
+          name: website-files
+          path: ./dist  # 🔹 مسیر را به `dist` تغییر دهید
+
+      - name: List Downloaded Files
+        run: ls -la ./dist  # 🔹 بررسی فایل‌های دانلود شده
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./dist  # 🔹 مسیر را تصحیح کنید
